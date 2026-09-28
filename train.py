@@ -131,7 +131,17 @@ def main():
     if train_dataset.num_classes < p:
         p = max(2, train_dataset.num_classes // 2)
 
-    num_workers = args.workers if args.workers is not None else config["data"].get("num_workers", 0)
+    if args.workers is not None:
+        num_workers = args.workers
+    else:
+        # Default to 2 workers on Linux/Colab for high GPU throughput, 0 on macOS/Windows
+        default_cfg_workers = config["data"].get("num_workers", 0)
+        import sys
+        if default_cfg_workers == 0 and sys.platform.startswith("linux"):
+            num_workers = 2
+        else:
+            num_workers = default_cfg_workers
+
     sampler = MultiDomainPKSampler(train_dataset, p=p, k=k, seed=seed)
     train_loader = DataLoader(train_dataset, batch_sampler=sampler, num_workers=num_workers)
 

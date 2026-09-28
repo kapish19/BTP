@@ -187,6 +187,21 @@ class Trainer:
                 epoch_losses[k] = epoch_losses.get(k, 0.0) + v
             batch_count += 1
 
+            # Log live progress every 100 batches
+            total_batches = len(self.train_loader)
+            if (batch_idx + 1) % 100 == 0 or (batch_idx + 1) == total_batches:
+                step_elapsed = time.time() - start_time
+                batches_per_sec = (batch_idx + 1) / max(1e-3, step_elapsed)
+                self.logger.info(
+                    f"Epoch [{epoch}/{self.total_epochs}] Iter [{batch_idx + 1:4d}/{total_batches:4d}] "
+                    f"({(batch_idx + 1) / total_batches * 100:5.1f}%) | "
+                    f"Loss: {loss.item():.4f} | "
+                    f"ID: {loss_dict.get('loss_id_g', 0.0):.3f} | "
+                    f"Tri: {loss_dict.get('loss_tri_g', 0.0):.3f} | "
+                    f"Occ: {loss_dict.get('loss_occ', 0.0):.3f} | "
+                    f"Speed: {batches_per_sec:.1f} b/s"
+                )
+
         self.scheduler.step()
         elapsed = time.time() - start_time
 
