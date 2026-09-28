@@ -67,9 +67,10 @@ def main():
 
     # Build model
     model_cfg = config["model"]
+    num_domains = 2 if args.synthetic else model_cfg.get("num_domains", 3)
     model = DGReID(
         num_classes=num_classes,
-        num_domains=model_cfg.get("num_domains", 3),
+        num_domains=num_domains,
         feat_dim=model_cfg.get("feat_dim", 512),
         clip_dim=model_cfg.get("clip_dim", 768),
         num_factors=model_cfg.get("num_factors", 4),
@@ -82,7 +83,7 @@ def main():
 
     if args.checkpoint and os.path.isfile(args.checkpoint):
         logger.info(f"Loading checkpoint weights from: {args.checkpoint}")
-        load_checkpoint(args.checkpoint, model, device=device)
+        load_checkpoint(args.checkpoint, model, device=device, strict=False)
     else:
         logger.warning("No checkpoint provided or found; running with initialized weights.")
 

@@ -94,7 +94,7 @@ def main():
     model = DGReID(num_classes=1000, num_domains=3).to(device)
     if args.checkpoint and os.path.isfile(args.checkpoint):
         print(f"[+] Loading checkpoint: {args.checkpoint}")
-        load_checkpoint(args.checkpoint, model, device=device)
+        load_checkpoint(args.checkpoint, model, device=device, strict=False)
     else:
         print("[!] No checkpoint specified; running inference with initialized model.")
 
