@@ -25,9 +25,22 @@ class VisibilityLoss(nn.Module):
         Returns:
             loss: Mean visibility cross-entropy loss scalar
         """
+        # Cast to float32 to avoid NaN from AMP float16 underflow
+        v_pred = v_pred.float()
+        m_target = m_target.float()
+
+        # Guard: if predictions are invalid, skip loss
+        if torch.isnan(v_pred).any() or torch.isinf(v_pred).any():
+            return torch.tensor(0.0, device=v_pred.device, dtype=torch.float32)
+
         v_pred = torch.clamp(v_pred, min=self.eps, max=1.0 - self.eps)
         m_target = torch.clamp(m_target, min=0.0, max=1.0)
 
         # BCE with soft targets
         bce = -(m_target * torch.log(v_pred) + (1.0 - m_target) * torch.log(1.0 - v_pred))
-        return bce.mean()
+        loss = bce.mean()
+
+        # Final guard: return 0 if somehow still NaN
+        if torch.isnan(loss):
+            return torch.tensor(0.0, device=v_pred.device, dtype=torch.float32)
+        return loss

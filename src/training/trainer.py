@@ -123,7 +123,8 @@ class Trainer:
 
         optimizer = torch.optim.AdamW(param_groups)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=self.total_epochs, eta_min=1e-6
+            optimizer, T_max=self.total_epochs, eta_min=1e-6,
+            last_epoch=self.start_epoch - 2  # avoids "step before optimizer.step()" warning
         )
         return optimizer, scheduler
 
@@ -183,6 +184,11 @@ class Trainer:
                 self.optimizer.step()
 
             # Accumulate loss metrics
+            if torch.isnan(loss) or torch.isinf(loss):
+                self.logger.warning(f"  [!] NaN/Inf loss at batch {batch_idx}, skipping.")
+                self.optimizer.zero_grad()
+                continue
+
             for k, v in loss_dict.items():
                 epoch_losses[k] = epoch_losses.get(k, 0.0) + v
             batch_count += 1

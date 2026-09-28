@@ -115,5 +115,9 @@ class TotalLoss(nn.Module):
             total_loss = total_loss + self.lambda_ortho * l_ortho
             loss_dict['loss_ortho'] = l_ortho.item()
 
+        # Guard against NaN total loss (can happen from degenerate batches or AMP)
+        if torch.isnan(total_loss) or torch.isinf(total_loss):
+            total_loss = torch.tensor(0.0, device=device, requires_grad=True)
+
         loss_dict['loss_total'] = total_loss.item()
         return total_loss, loss_dict
