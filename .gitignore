@@ -38,10 +38,11 @@ checkpoints/
 *.tar.gz
 
 # Data directories and datasets
-data/
-datasets/
+/data/
+/datasets/
 synthetic_dataset/
 *.zip
+!src/data/
 
 # Logs, runs, and outputs
 outputs/
