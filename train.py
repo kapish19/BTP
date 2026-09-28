@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader
 
 from src.models.dg_reid import DGReID
 from src.data.dataset import ReIDImageDataset, MultiDomainReIDDataset, parse_market1501_dir, load_reid_benchmark
+from src.data.prepare_datasets import ensure_dataset_available
 from src.data.sampler import MultiDomainPKSampler
 from src.data.synthetic_data import generate_synthetic_reid_dataset
 from src.data.occlusion import SyntheticOcclusionGenerator
@@ -37,6 +38,7 @@ def parse_args():
     parser.add_argument("--device", type=str, default=None, help="Device (cuda, cpu, mps)")
     parser.add_argument("--seed", type=int, default=None, help="Random seed")
     parser.add_argument("--workers", type=int, default=None, help="Number of DataLoader workers (default: from config)")
+    parser.add_argument("--no_auto_download", action="store_false", dest="auto_download", default=True, help="Disable automatic Kaggle dataset downloading")
     return parser.parse_args()
 
 
@@ -99,12 +101,16 @@ def main():
 
         source_data = []
         for idx, s_name in enumerate(source_names):
+            if args.auto_download:
+                ensure_dataset_available(s_name, root_dir=root_dir, auto_download=True)
             s_train, _, _ = load_reid_benchmark(root_dir, s_name, domain_id=idx)
             logger.info(f"Loaded {s_name}: {len(s_train)} training images")
             source_data.append((s_name, s_train))
 
         train_dataset = MultiDomainReIDDataset(source_data, occlusion_generator=occ_gen)
 
+        if args.auto_download:
+            ensure_dataset_available(target_name, root_dir=root_dir, auto_download=True)
         _, target_query, target_gallery = load_reid_benchmark(root_dir, target_name, domain_id=len(source_names))
         logger.info(f"Loaded target {target_name}: {len(target_query)} query images, {len(target_gallery)} gallery images")
         val_q_dataset = ReIDImageDataset(target_query, is_train=False)

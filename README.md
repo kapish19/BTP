@@ -239,7 +239,18 @@ python3 -m unittest discover tests -v
 
 ## 8. Dataset Preparation & Benchmark Directory Structures
 
-The codebase features automatic directory resolution, supporting exact naming conventions from Kaggle and GitHub sources without manual folder renaming:
+The codebase features **full automation via Kaggle API** and automatic directory resolution, supporting exact naming conventions from Kaggle and GitHub sources without manual folder renaming:
+
+### 8.0 Automated Download via Kaggle API (Recommended on GPU Systems & Servers)
+With your `kaggle.json` token configured in `~/.kaggle/kaggle.json` (or in the project root):
+```bash
+# All-in-one download and verification for Market-1501, MSMT17, CUHK-SYSU, CUHK03:
+bash scripts/setup_datasets.sh
+
+# Or via Python CLI:
+python src/data/prepare_datasets.py --download all --dir ./data
+```
+Furthermore, `train.py` automatically checks for missing datasets and downloads them on the fly if Kaggle credentials are available.
 
 ### 8.1 Benchmark Sources & Directory Layouts
 

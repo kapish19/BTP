@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 
 from src.models.dg_reid import DGReID
 from src.data.dataset import ReIDImageDataset, parse_market1501_dir, load_reid_benchmark
+from src.data.prepare_datasets import ensure_dataset_available
 from src.data.synthetic_data import generate_synthetic_reid_dataset
 from src.evaluation.evaluator import Evaluator
 from src.utils.config import load_config, merge_configs
@@ -53,6 +54,7 @@ def main():
     else:
         root_dir = config["data"]["root_dir"]
         target_name = config["data"]["target_dataset"]
+        ensure_dataset_available(target_name, root_dir=root_dir, auto_download=True)
         _, query_samples, gallery_samples = load_reid_benchmark(root_dir, target_name, domain_id=0)
         num_classes = 1000
 

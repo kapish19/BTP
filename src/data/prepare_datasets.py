@@ -111,12 +111,135 @@ Occluded-DukeMTMC/
 }
 
 
+DATASET_HANDLES = {
+    "Market-1501": "pengcw1/market-1501",
+    "MSMT17": "ouassimaazzouzi/msmt17",
+    "CUHK-SYSU": "manaschaiaonon/cuhk-sysu",
+    "CUHK03": "priyanagda/cuhk03",
+}
+
+CUHK03_NP_URLS = [
+    ("https://raw.githubusercontent.com/zhunzhong07/person-re-ranking/master/CUHK03-NP/cuhk03_new_protocol_config_detected.mat", "cuhk03_new_protocol_config_detected.mat"),
+    ("https://raw.githubusercontent.com/zhunzhong07/person-re-ranking/master/CUHK03-NP/cuhk03_new_protocol_config_labeled.mat", "cuhk03_new_protocol_config_labeled.mat"),
+]
+
+
+def check_kaggle_installed_and_configured() -> Tuple[bool, str]:
+    """
+    Checks if kaggle CLI / package is available and credentials are set.
+    """
+    # Check if kaggle.json is in current directory and configure env
+    if os.path.isfile("kaggle.json"):
+        os.environ["KAGGLE_CONFIG_DIR"] = os.path.abspath(".")
+    elif os.path.isfile(os.path.expanduser("~/.kaggle/kaggle.json")):
+        pass
+    elif not (os.environ.get("KAGGLE_USERNAME") and os.environ.get("KAGGLE_KEY")):
+        return False, "kaggle.json not found in ~/.kaggle/ or current directory, and KAGGLE_USERNAME/KAGGLE_KEY env vars not set."
+
+    # Verify kaggle CLI or python module
+    try:
+        import subprocess
+        res = subprocess.run([sys.executable, "-m", "kaggle", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if res.returncode == 0:
+            return True, "Kaggle CLI available"
+    except Exception:
+        pass
+
+    return False, "Kaggle python package not installed. Run: pip install kaggle"
+
+
+def download_cuhk03_np_protocols(target_dir: str):
+    """
+    Downloads CUHK03-NP protocol MAT files if not already present.
+    """
+    import urllib.request
+    np_dir = os.path.join(target_dir, "cuhk03_np")
+    os.makedirs(np_dir, exist_ok=True)
+    for url, fname in CUHK03_NP_URLS:
+        dest = os.path.join(np_dir, fname)
+        if not os.path.exists(dest):
+            print(f"[+] Downloading CUHK03-NP protocol file: {fname}...")
+            try:
+                urllib.request.urlretrieve(url, dest)
+                print(f"    [OK] Saved to {dest}")
+            except Exception as e:
+                print(f"    [!] Failed to download {url}: {e}")
+        else:
+            print(f"    [OK] Already present: {dest}")
+
+
+def download_dataset_from_kaggle(dataset_name: str, target_dir: str = "./data") -> bool:
+    """
+    Downloads and extracts a benchmark dataset from Kaggle into target_dir.
+    """
+    import subprocess
+    os.makedirs(target_dir, exist_ok=True)
+
+    # Normalize key
+    key = None
+    for k in DATASET_HANDLES.keys():
+        if k.lower().replace("_", "-") == dataset_name.lower().replace("_", "-"):
+            key = k
+            break
+
+    if key is None:
+        print(f"[-] No Kaggle dataset mapping found for '{dataset_name}'.")
+        return False
+
+    handle = DATASET_HANDLES[key]
+    ok, msg = check_kaggle_installed_and_configured()
+    if not ok:
+        print(f"[!] Cannot download {key} automatically: {msg}")
+        print("    Please place your kaggle.json in ~/.kaggle/ or pass datasets manually.")
+        return False
+
+    print(f"\n[+] Downloading {key} from Kaggle ({handle}) to '{target_dir}'...")
+    try:
+        cmd = [sys.executable, "-m", "kaggle", "datasets", "download", "-d", handle, "-p", target_dir, "--unzip"]
+        res = subprocess.run(cmd, check=True)
+        if res.returncode == 0:
+            print(f"[+] Successfully downloaded and unzipped {key}!")
+            if key == "CUHK03":
+                download_cuhk03_np_protocols(target_dir)
+            return True
+    except subprocess.CalledProcessError as e:
+        print(f"[-] Error downloading {key} via Kaggle API: {e}")
+        return False
+
+
+def ensure_dataset_available(dataset_name: str, root_dir: str = "./data", auto_download: bool = True) -> str:
+    """
+    Checks if dataset exists in root_dir. If missing and auto_download is True,
+    attempts to download it from Kaggle. Returns resolved directory path.
+    """
+    try:
+        resolved = resolve_dataset_dir(root_dir, dataset_name)
+        if os.path.exists(resolved):
+            return resolved
+    except Exception:
+        pass
+
+    if auto_download:
+        print(f"[*] Dataset '{dataset_name}' not detected in '{root_dir}'. Attempting auto-download from Kaggle...")
+        download_dataset_from_kaggle(dataset_name, root_dir)
+        try:
+            return resolve_dataset_dir(root_dir, dataset_name)
+        except Exception as e:
+            print(f"[!] Could not resolve '{dataset_name}' after download: {e}")
+    return os.path.join(root_dir, dataset_name)
+
+
 def verify_dataset_structure(dataset_name: str, root_dir: str) -> bool:
     """
     Validates whether the expected dataset folder structure exists on disk.
     Automatically resolves alternate folder names (e.g. Market-1501-v15.09.15, MSMT17_V1, cuhk_sysu).
     """
-    resolved_dir = resolve_dataset_dir(root_dir, dataset_name)
+    try:
+        resolved_dir = resolve_dataset_dir(root_dir, dataset_name)
+    except Exception as e:
+        print(f"    [X] Directory not found for {dataset_name}: {e}")
+        return False
+
     key = None
     for k in DATASET_INFO.keys():
         if k.lower().replace("_", "-") == dataset_name.lower().replace("_", "-"):
@@ -167,13 +290,26 @@ def print_download_instructions():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Dataset preparation & verification")
+    parser = argparse.ArgumentParser(description="Dataset preparation, downloading & verification")
     parser.add_argument("--info", action="store_true", help="Print download instructions and folder trees")
-    parser.add_argument("--verify", type=str, choices=list(DATASET_INFO.keys()), help="Dataset name to verify")
+    parser.add_argument("--verify", type=str, default=None, help="Dataset name to verify, or 'all'")
+    parser.add_argument("--download", type=str, default=None, help="Dataset name to download via Kaggle, or 'all'")
     parser.add_argument("--dir", type=str, default="./data", help="Directory where dataset is located")
     args = parser.parse_args()
 
-    if args.info or len(sys.argv) == 1:
-        print_download_instructions()
+    if args.download:
+        if args.download.lower() == "all":
+            for name in DATASET_HANDLES.keys():
+                download_dataset_from_kaggle(name, args.dir)
+        else:
+            download_dataset_from_kaggle(args.download, args.dir)
+
     if args.verify:
-        verify_dataset_structure(args.verify, args.dir)
+        if args.verify.lower() == "all":
+            for name in DATASET_INFO.keys():
+                verify_dataset_structure(name, args.dir)
+        else:
+            verify_dataset_structure(args.verify, args.dir)
+
+    if not args.verify and not args.download and (args.info or len(sys.argv) == 1):
+        print_download_instructions()
