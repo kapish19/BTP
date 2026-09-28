@@ -100,23 +100,29 @@ def main():
         logger.info(f"Sources: {source_names} -> Target: {target_name}")
 
         source_data = []
-        for idx, s_name in enumerate(source_names):
+        for s_name in source_names:
             if args.auto_download:
                 ensure_dataset_available(s_name, root_dir=root_dir, auto_download=True)
-            s_train, _, _ = load_reid_benchmark(root_dir, s_name, domain_id=idx)
-            logger.info(f"Loaded {s_name}: {len(s_train)} training images")
-            source_data.append((s_name, s_train))
+            s_train, _, _ = load_reid_benchmark(root_dir, s_name, domain_id=len(source_data))
+            if len(s_train) > 0:
+                logger.info(f"Loaded {s_name}: {len(s_train)} training images")
+                source_data.append((s_name, s_train))
+            else:
+                logger.warning(f"Skipping {s_name}: 0 training images found on disk.")
+
+        if not source_data:
+            raise RuntimeError(f"No valid source images found for: {source_names}")
 
         train_dataset = MultiDomainReIDDataset(source_data, occlusion_generator=occ_gen)
 
         if args.auto_download:
             ensure_dataset_available(target_name, root_dir=root_dir, auto_download=True)
-        _, target_query, target_gallery = load_reid_benchmark(root_dir, target_name, domain_id=len(source_names))
+        _, target_query, target_gallery = load_reid_benchmark(root_dir, target_name, domain_id=len(source_data))
         logger.info(f"Loaded target {target_name}: {len(target_query)} query images, {len(target_gallery)} gallery images")
         val_q_dataset = ReIDImageDataset(target_query, is_train=False)
         val_g_dataset = ReIDImageDataset(target_gallery, is_train=False)
         num_classes = train_dataset.num_classes
-        num_domains = len(source_names)
+        num_domains = len(source_data)
 
     # Sampler
     p = config["data"].get("p", 16)

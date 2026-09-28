@@ -141,7 +141,7 @@ FOLDER_CANDIDATES = {
     "market-1501": ["Market-1501-v15.09.15", "Market-1501", "market1501", "Market1501"],
     "msmt17": ["MSMT17_V1", "MSMT17", "msmt17", "MSMT17_V2"],
     "cuhk03": ["cuhk03", "CUHK03", "cuhk03_release", "archive"],
-    "cuhk-sysu": ["cuhk_sysu", "CUHK-SYSU", "cuhksysu"],
+    "cuhk-sysu": ["cuhk-sysu", "cuhk_sysu", "CUHK-SYSU", "cuhksysu"],
     "occluded-dukemtmc": ["Occluded-DukeMTMC", "occluded_dukemtmc", "DukeMTMC-reID", "occluded_duke"]
 }
 
@@ -164,6 +164,11 @@ def resolve_dataset_dir(root_dir: str, dataset_name: str) -> str:
         cand_path = os.path.join(root_dir, cand)
         if os.path.isdir(cand_path):
             return cand_path
+
+    # Check if files are unzipped directly into root_dir
+    if key in ["cuhk-sysu", "cuhksysu"]:
+        if os.path.isdir(os.path.join(root_dir, "annotation")) or os.path.isdir(os.path.join(root_dir, "Image")):
+            return root_dir
 
     # Case-insensitive directory search under root_dir
     if os.path.exists(root_dir):
@@ -291,7 +296,18 @@ def parse_cuhk03_splits(
                 else:
                     continue
 
-                full_path = os.path.join(img_dir, fname)
+                clean_name = os.path.basename(str(fname).replace('\\', '/'))
+                full_path = os.path.join(img_dir, clean_name)
+                if not os.path.isfile(full_path):
+                    for alt in [
+                        os.path.join(dataset_dir, clean_name),
+                        os.path.join(dataset_dir, f"images_{protocol}", clean_name),
+                        os.path.join(dataset_dir, "archive", f"images_{protocol}", clean_name),
+                        os.path.join(dataset_dir, "cuhk03", f"images_{protocol}", clean_name)
+                    ]:
+                        if os.path.isfile(alt):
+                            full_path = alt
+                            break
                 res.append((full_path, pid, cam, domain_id))
             return res
 
