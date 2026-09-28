@@ -14,57 +14,10 @@ from collections import defaultdict
 import random
 import torch
 
-class SyntheticOcclusionAugment:
-    def __init__(self, p=0.5, grid_size=(16, 8)):
-        self.p = p
-        self.grid_size = grid_size
-        
-    def __call__(self, img_tensor):
-        # img_tensor is [3, H, W]
-        _, H, W = img_tensor.shape
-        num_parts = 3
-        # Mask is [3, 1] representing visibility of Head, Torso, Legs (1=visible, 0=occluded)
-        mask = torch.ones(num_parts, 1, dtype=torch.float32)
-        
-        if random.random() > self.p:
-            return img_tensor, mask
-            
-        # Random occlusion block
-        # Size between 0.2 and 0.5 of image width
-        s_w = int(random.uniform(0.2, 0.6) * W)
-        s_h = int(random.uniform(0.2, 0.6) * H)
-        
-        if s_w <= 0 or s_h <= 0:
-            return img_tensor, mask
-            
-        x0 = random.randint(0, W - s_w)
-        y0 = random.randint(0, H - s_h)
-        x1 = x0 + s_w
-        y1 = y0 + s_h
-        
-        # Apply occlusion (mean color or random noise, let's use mean color 0 since it's normalized)
-        # Using 0 which is roughly mean for InstanceNorm or ImageNet mean
-        img_tensor[:, y0:y1, x0:x1] = 0.0
-        
-        # Calculate which parts are occluded.
-        # We split H into 3 parts (Head, Torso, Legs)
-        part_h = H / num_parts
-        for i in range(num_parts):
-            p_y0 = i * part_h
-            p_y1 = (i + 1) * part_h
-            
-            # Intersection of (y0, y1) and (p_y0, p_y1)
-            inter_y0 = max(y0, p_y0)
-            inter_y1 = min(y1, p_y1)
-            
-            if inter_y1 > inter_y0:
-                # Occlusion overlaps with this part
-                # If overlap area is significant, mark as occluded (0)
-                overlap_ratio = (inter_y1 - inter_y0) / part_h
-                if overlap_ratio > 0.3:
-                    mask[i, 0] = 0.0 # Occluded
-                    
-        return img_tensor, mask
+from .occlusion import SyntheticOcclusionTransform, apply_target_occlusion
+
+# Legacy alias for backward compatibility
+SyntheticOcclusionAugment = SyntheticOcclusionTransform
 
 def resolve_image_path(file_name):
     if os.path.exists(file_name):
@@ -207,10 +160,10 @@ class CommDataset(Dataset):
                 img = self.transform(img)
         except Exception:
             # Fallback to blank tensor on any unexpected error
-            img = torch.zeros(3, 224, 224)
+            img = torch.zeros(3, 256, 128)
 
         if self.is_train and self.occ_aug is not None:
-            img, occ_mask = self.occ_aug(img)
+            img, occ_mask, _ = self.occ_aug(img)
         else:
             occ_mask = torch.ones(3, 1, dtype=torch.float32)
 

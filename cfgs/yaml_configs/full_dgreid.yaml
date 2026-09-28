@@ -1,0 +1,46 @@
+# DG-ReID Full Proposed Architecture Configuration
+# Protocol 2: Multi-source training -> Zero-shot evaluation on Market-1501
+
+experiment_name: "full_dgreid_market"
+benchmark: "protocol2"
+held_out_domain: "Market"
+train_datasets: ["MSMT17", "cuhk_sysu", "cuhk03"]
+test_datasets: ["Market"]
+
+model:
+  name: "DGReID"
+  backbone: "ViT-B-16"
+  img_size: [256, 128]
+  feat_dim: 512
+  num_domains: 3
+  num_factors: 4
+  disable_grl: false
+  disable_part_branch: false
+  disable_vis_gating: false
+  eval_feat: "combined"
+
+training:
+  epochs: 60
+  stage1_epochs: 10
+  stage2_epochs: 30
+  stage3_epochs: 20
+  batch_size: 64
+  num_instance: 4
+  optimizer: "Adam"
+  head_lr: 0.00035
+  image_encoder_lr: 0.000005
+  weight_decay: 0.0001
+  checkpoint_period: 10
+  eval_period: 10
+  log_period: 50
+
+losses:
+  lambda_id: 1.0
+  lambda_tri: 1.0
+  lambda_id_local: 0.5
+  lambda_tri_local: 0.5
+  lambda_occ: 0.3
+  lambda_adv: 0.1
+  lambda_ortho: 0.05
+  triplet_margin: 0.3
+  label_smooth: 0.1

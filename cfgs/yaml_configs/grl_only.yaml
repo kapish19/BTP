@@ -1,0 +1,40 @@
+# GRL-Only Configuration
+# Table 7: Visual GRL = Yes, Part Branch = No
+
+experiment_name: "ablation_grl_only"
+benchmark: "protocol2"
+held_out_domain: "Market"
+train_datasets: ["MSMT17", "cuhk_sysu", "cuhk03"]
+test_datasets: ["Market"]
+
+model:
+  name: "DGReID"
+  backbone: "ViT-B-16"
+  img_size: [256, 128]
+  feat_dim: 512
+  num_domains: 3
+  disable_grl: false
+  disable_part_branch: true
+  eval_feat: "global"
+
+training:
+  epochs: 60
+  stage1_epochs: 10
+  stage2_epochs: 30
+  batch_size: 64
+  num_instance: 4
+  optimizer: "Adam"
+  head_lr: 0.00035
+  image_encoder_lr: 0.000005
+  weight_decay: 0.0001
+  checkpoint_period: 10
+  eval_period: 10
+
+losses:
+  lambda_id: 1.0
+  lambda_tri: 1.0
+  lambda_id_local: 0.0
+  lambda_tri_local: 0.0
+  lambda_occ: 0.0
+  lambda_adv: 0.1
+  lambda_ortho: 0.05
