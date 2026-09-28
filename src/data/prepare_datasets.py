@@ -119,8 +119,8 @@ DATASET_HANDLES = {
 }
 
 CUHK03_NP_URLS = [
-    ("https://raw.githubusercontent.com/zhunzhong07/person-re-ranking/master/CUHK03-NP/cuhk03_new_protocol_config_detected.mat", "cuhk03_new_protocol_config_detected.mat"),
-    ("https://raw.githubusercontent.com/zhunzhong07/person-re-ranking/master/CUHK03-NP/cuhk03_new_protocol_config_labeled.mat", "cuhk03_new_protocol_config_labeled.mat"),
+    ("https://raw.githubusercontent.com/zhunzhong07/person-re-ranking/master/evaluation/data/CUHK03/cuhk03_new_protocol_config_detected.mat", "cuhk03_new_protocol_config_detected.mat"),
+    ("https://raw.githubusercontent.com/zhunzhong07/person-re-ranking/master/evaluation/data/CUHK03/cuhk03_new_protocol_config_labeled.mat", "cuhk03_new_protocol_config_labeled.mat"),
 ]
 
 
