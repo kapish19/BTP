@@ -1,0 +1,15 @@
+# Ablation: Full DG-ReID Architecture (Visual GRL Yes, Part Branch Yes)
+model:
+  enable_grl: true
+  enable_part_branch: true
+  enable_gat: true
+  enable_vis_gating: true
+  enable_ortho: true
+loss:
+  lambda_id: 1.0
+  lambda_tri: 1.0
+  lambda_id_loc: 0.5
+  lambda_tri_loc: 0.5
+  lambda_occ: 0.3
+  lambda_adv: 0.1
+  lambda_ortho: 0.05

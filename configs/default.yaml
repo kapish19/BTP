@@ -1,0 +1,63 @@
+# Default configuration for DG-ReID
+# "Visibility-Aware Visual Domain Erasure for Generalizable Person Re-Identification"
+
+seed: 42
+deterministic: true
+
+model:
+  img_size: [256, 128]
+  patch_size: 16
+  clip_dim: 768
+  feat_dim: 512
+  depth: 12
+  num_heads: 12
+  unfreeze_blocks: 2
+  num_factors: 4
+  num_domains: 3
+  enable_grl: true
+  enable_part_branch: true
+  enable_gat: true
+  enable_vis_gating: true
+  enable_ortho: true
+  enable_reconstruction_gate: true
+
+data:
+  root_dir: "./data"
+  source_datasets: ["MSMT17", "CUHK03", "CUHK-SYSU"]
+  target_dataset: "Market-1501"
+  p: 16
+  k: 4
+  num_workers: 0  # Set to 4 or 8 on Linux GPU clusters; 0 on macOS/local
+  occlusion:
+    prob: 0.5
+    area_range: [0.1, 0.5]
+    aspect_range: [0.3, 3.3]
+
+loss:
+  lambda_id: 1.0
+  lambda_tri: 1.0
+  lambda_id_loc: 0.5
+  lambda_tri_loc: 0.5
+  lambda_occ: 0.3
+  lambda_adv: 0.1
+  lambda_ortho: 0.05
+  triplet_margin: 0.3
+  label_smooth_eps: 0.1
+
+train:
+  total_epochs: 60
+  stage1_epochs: 10
+  stage2_epochs: 30
+  stage3_epochs: 60
+  grl_ramp_epochs: 10
+  lr_head: 0.00035
+  lr_backbone: 0.000035
+  weight_decay: 0.0001
+  clip_grad_norm: 1.0
+  eval_period: 5
+  use_amp: true
+
+eval:
+  distance_metric: "cosine"
+  batch_size: 128
+  severities: ["clean", "mild", "moderate", "severe"]

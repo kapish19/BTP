@@ -1,0 +1,8 @@
+# Ablation: Ungated Part Branch (Without Visibility Modulation)
+model:
+  enable_grl: true
+  enable_part_branch: true
+  enable_gat: true
+  enable_vis_gating: false
+loss:
+  lambda_occ: 0.0

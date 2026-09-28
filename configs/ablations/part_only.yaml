@@ -1,0 +1,9 @@
+# Ablation: Part-Only (Visual GRL No, Part Branch Yes)
+model:
+  enable_grl: false
+  enable_part_branch: true
+loss:
+  lambda_adv: 0.0
+  lambda_id_loc: 0.5
+  lambda_tri_loc: 0.5
+  lambda_occ: 0.3

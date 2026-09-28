@@ -1,0 +1,5 @@
+# Ablation: Without Latent Domain Factor Orthogonality Penalty
+model:
+  enable_ortho: false
+loss:
+  lambda_ortho: 0.0

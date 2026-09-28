@@ -1,0 +1,9 @@
+# Leave-Market-1501-out Cross-Domain Configuration
+# Train on MSMT17 + CUHK03 + CUHK-SYSU, Evaluate strictly on unseen Market-1501
+
+data:
+  source_datasets: ["MSMT17", "CUHK03", "CUHK-SYSU"]
+  target_dataset: "Market-1501"
+
+model:
+  num_domains: 3

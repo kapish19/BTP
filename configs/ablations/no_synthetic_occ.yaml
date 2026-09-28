@@ -1,0 +1,6 @@
+# Ablation: Without Synthetic Occlusion Augmentation
+data:
+  occlusion:
+    prob: 0.0
+loss:
+  lambda_occ: 0.0

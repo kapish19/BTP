@@ -1,0 +1,63 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Checkpoints and Large Model Weights
+checkpoints/
+*.pth
+*.pt
+*.bin
+*.tar.gz
+
+# Data directories and datasets
+data/
+datasets/
+synthetic_dataset/
+*.zip
+
+# Logs, runs, and outputs
+outputs/
+runs/
+logs/
+*.log
+*.csv
+.coverage
+htmlcov/
+
+# Editor and OS caches
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.vscode/
+.idea/
+*.swp
+*~

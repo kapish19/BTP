@@ -1,0 +1,9 @@
+# Ablation: CILP-FGDI Visual Baseline (No GRL, No Part Branch)
+model:
+  enable_grl: false
+  enable_part_branch: false
+loss:
+  lambda_adv: 0.0
+  lambda_id_loc: 0.0
+  lambda_tri_loc: 0.0
+  lambda_occ: 0.0
