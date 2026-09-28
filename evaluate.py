@@ -12,7 +12,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from src.models.dg_reid import DGReID
-from src.data.dataset import ReIDImageDataset, parse_market1501_dir
+from src.data.dataset import ReIDImageDataset, parse_market1501_dir, load_reid_benchmark
 from src.data.synthetic_data import generate_synthetic_reid_dataset
 from src.evaluation.evaluator import Evaluator
 from src.utils.config import load_config, merge_configs
@@ -53,10 +53,7 @@ def main():
     else:
         root_dir = config["data"]["root_dir"]
         target_name = config["data"]["target_dataset"]
-        query_dir = os.path.join(root_dir, target_name, "query")
-        gallery_dir = os.path.join(root_dir, target_name, "bounding_box_test")
-        query_samples = parse_market1501_dir(query_dir, domain_id=0)
-        gallery_samples = parse_market1501_dir(gallery_dir, domain_id=0)
+        _, query_samples, gallery_samples = load_reid_benchmark(root_dir, target_name, domain_id=0)
         num_classes = 1000
 
     query_dataset = ReIDImageDataset(query_samples, is_train=False)

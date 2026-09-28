@@ -1,0 +1,9 @@
+# Leave-Occluded-DukeMTMC Cross-Domain Configuration
+# Train on Market-1501 + MSMT17 + CUHK03, Evaluate strictly on unseen Occluded-DukeMTMC
+
+data:
+  source_datasets: ["Market-1501", "MSMT17", "CUHK03"]
+  target_dataset: "Occluded-DukeMTMC"
+
+model:
+  num_domains: 3

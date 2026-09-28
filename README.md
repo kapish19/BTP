@@ -237,20 +237,86 @@ python3 -m unittest discover tests -v
 
 ---
 
-## 8. Dataset Preparation
+## 8. Dataset Preparation & Benchmark Directory Structures
 
-Download the standard benchmarks and place them under `./data/`:
+The codebase features automatic directory resolution, supporting exact naming conventions from Kaggle and GitHub sources without manual folder renaming:
 
-| Dataset | Training Folder | Test Folder | Query Folder | Official Link |
-| :--- | :--- | :--- | :--- | :--- |
-| **Market-1501** | `bounding_box_train/` | `bounding_box_test/` | `query/` | [Download](http://zheng-lab.cecs.anu.edu.au/Project/project_reid.html) |
-| **MSMT17** | `train/` | `test/` | `list_query.txt` | [Download](https://www.pkuvmc.cc/msmt17.html) |
-| **CUHK03** | `bounding_box_train/` | `bounding_box_test/` | `query/` | [Download](http://www.ee.cuhk.edu.hk/~xgwang/CUHK_identification.html) |
-| **CUHK-SYSU** | `cropped_images/` | — | — | [Download](https://github.com/ShuangLI59/Person-Search-CUHK-SYSU) |
+### 8.1 Benchmark Sources & Directory Layouts
 
-Verify your dataset paths using the preparation utility:
+#### 1. Market-1501
+- **Source:** [Kaggle: Market-1501](https://www.kaggle.com/datasets/pengcw1/market-1501/data)
+- **Directory:** `./data/Market-1501-v15.09.15/` (or `./data/Market-1501/`)
+```
+Market-1501-v15.09.15/
+├── bounding_box_test/
+├── bounding_box_train/
+├── gt_bbox/
+├── gt_query/
+├── query/
+└── readme.txt
+```
+
+#### 2. MSMT17
+- **Source:** [Kaggle: MSMT17](https://www.kaggle.com/datasets/ouassimaazzouzi/msmt17)
+- **Directory:** `./data/MSMT17_V1/` (or `./data/MSMT17/`)
+```
+MSMT17_V1/
+├── test/
+├── train/
+├── list_gallery.txt
+├── list_query.txt
+├── list_train.txt
+└── list_val.txt
+```
+
+#### 3. CUHK-SYSU
+- **Source:** [Kaggle: CUHK-SYSU](https://www.kaggle.com/datasets/manaschaiaonon/cuhk-sysu)
+- **Directory:** `./data/cuhk_sysu/` (or `./data/CUHK-SYSU/`)
+```
+cuhk_sysu/
+├── Image/
+│   └── SSM/
+├── annotation/
+│   ├── test/
+│   ├── Images.mat
+│   ├── Person.mat
+│   └── pool.mat
+└── README.txt
+```
+
+#### 4. CUHK03 (CUHK03-NP Protocol)
+- **Source:** [Kaggle: CUHK03](https://www.kaggle.com/datasets/priyanagda/cuhk03) with [zhunzhong07/person-re-ranking CUHK03-NP protocol files](https://github.com/zhunzhong07/person-re-ranking/tree/master/CUHK03-NP)
+- **Directory:** `./data/cuhk03/` (or `./data/archive/`)
+```
+cuhk03/
+├── cuhk03_release/
+│   ├── README.md
+│   └── cuhk-03.mat
+├── images_detected/
+├── images_labeled/
+├── splits_new_detected.json
+├── splits_new_labeled.json
+└── pairs.csv
+```
+
+#### 5. Occluded-DukeMTMC
+- **Source:** Converted from DukeMTMC-reID using [lightas/Occluded-DukeMTMC-Dataset](https://github.com/lightas/Occluded-DukeMTMC-Dataset)
+- **Directory:** `./data/Occluded-DukeMTMC/` (or `./data/occluded_dukemtmc/`)
+```
+Occluded-DukeMTMC/
+├── bounding_box_test/
+├── bounding_box_train/
+└── query/
+```
+
+### 8.2 Verifying Dataset Integrity
+Verify that your dataset directory matches expected structure:
 ```bash
-python src/data/prepare_datasets.py --verify Market-1501 --dir ./data/Market-1501
+python3 src/data/prepare_datasets.py --verify Market-1501 --dir ./data
+python3 src/data/prepare_datasets.py --verify MSMT17 --dir ./data
+python3 src/data/prepare_datasets.py --verify CUHK03 --dir ./data
+python3 src/data/prepare_datasets.py --verify CUHK-SYSU --dir ./data
+python3 src/data/prepare_datasets.py --verify Occluded-DukeMTMC --dir ./data
 ```
 
 ---

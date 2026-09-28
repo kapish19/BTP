@@ -14,7 +14,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from src.models.dg_reid import DGReID
-from src.data.dataset import ReIDImageDataset, MultiDomainReIDDataset, parse_market1501_dir
+from src.data.dataset import ReIDImageDataset, MultiDomainReIDDataset, parse_market1501_dir, load_reid_benchmark
 from src.data.sampler import MultiDomainPKSampler
 from src.data.synthetic_data import generate_synthetic_reid_dataset
 from src.data.occlusion import SyntheticOcclusionGenerator
@@ -99,16 +99,16 @@ def main():
 
         source_data = []
         for idx, s_name in enumerate(source_names):
-            s_dir = os.path.join(root_dir, s_name, "bounding_box_train")
-            samples = parse_market1501_dir(s_dir, domain_id=idx)
-            source_data.append((s_name, samples))
+            s_train, _, _ = load_reid_benchmark(root_dir, s_name, domain_id=idx)
+            logger.info(f"Loaded {s_name}: {len(s_train)} training images")
+            source_data.append((s_name, s_train))
 
         train_dataset = MultiDomainReIDDataset(source_data, occlusion_generator=occ_gen)
 
-        target_q_dir = os.path.join(root_dir, target_name, "query")
-        target_g_dir = os.path.join(root_dir, target_name, "bounding_box_test")
-        val_q_dataset = ReIDImageDataset(parse_market1501_dir(target_q_dir, domain_id=len(source_names)), is_train=False)
-        val_g_dataset = ReIDImageDataset(parse_market1501_dir(target_g_dir, domain_id=len(source_names)), is_train=False)
+        _, target_query, target_gallery = load_reid_benchmark(root_dir, target_name, domain_id=len(source_names))
+        logger.info(f"Loaded target {target_name}: {len(target_query)} query images, {len(target_gallery)} gallery images")
+        val_q_dataset = ReIDImageDataset(target_query, is_train=False)
+        val_g_dataset = ReIDImageDataset(target_gallery, is_train=False)
         num_classes = train_dataset.num_classes
         num_domains = len(source_names)
 
