@@ -360,27 +360,58 @@ def parse_cuhk_sysu(
     if os.path.isfile(person_mat) and os.path.isdir(ssm_dir):
         try:
             import scipy.io as sio
-            mat = sio.loadmat(person_mat)
-            # CUHK-SYSU Person.mat contains 'Person' cell array
-            person_arr = mat.get('Person')
-            if person_arr is not None:
-                # Pre-extract/crop persons into cached folder
+            from PIL import Image
+            import numpy as np
+
+            mat = sio.loadmat(person_mat, squeeze_me=True)
+            persons = mat.get('Person')
+            if persons is not None:
                 cache_dir = os.path.join(dataset_dir, "cropped_images")
                 os.makedirs(cache_dir, exist_ok=True)
+                print(f"[+] Automatically cropping CUHK-SYSU pedestrians into {cache_dir}...")
 
-                for p_idx in range(len(person_arr)):
-                    p_info = person_arr[p_idx, 0]
-                    # Structure: p_info contains id, image name, and box [x, y, w, h]
-                    if len(p_info) >= 3:
-                        pid = int(p_info[0][0]) if hasattr(p_info[0], '__getitem__') else p_idx
-                        # Extract crops if image is readable
-                        # For lightweight loading, if crops already extracted, reuse
-                        crop_name = f"{pid:05d}_{p_idx:06d}.jpg"
-                        crop_path = os.path.join(cache_dir, crop_name)
-                        samples.append((crop_path, pid, 0, domain_id))
+                count = 0
+                for p_idx, p in enumerate(persons):
+                    try:
+                        raw_id = str(p['idname'])
+                        digits = ''.join(filter(str.isdigit, raw_id))
+                        pid = int(digits) if digits else p_idx + 1
+                    except Exception:
+                        pid = p_idx + 1
+
+                    scenes = p['scene']
+                    if isinstance(scenes, np.void) or (isinstance(scenes, np.ndarray) and scenes.ndim == 0):
+                        scenes = [scenes]
+                    elif not isinstance(scenes, (list, np.ndarray)):
+                        continue
+
+                    for s in scenes:
+                        try:
+                            img_name = str(s['imname'])
+                            if not img_name.lower().endswith(('.jpg', '.jpeg', '.png')):
+                                img_name += ".jpg"
+                            img_path = os.path.join(ssm_dir, img_name)
+                            if not os.path.isfile(img_path):
+                                continue
+
+                            box = s['idlocate']
+                            x, y, w, h = [int(round(float(v))) for v in box[:4]]
+                            if w > 10 and h > 10:
+                                crop_name = f"{pid:05d}_{count:06d}.jpg"
+                                crop_path = os.path.join(cache_dir, crop_name)
+                                if not os.path.isfile(crop_path):
+                                    with Image.open(img_path) as im:
+                                        crop = im.crop((max(0, x), max(0, y), min(im.width, x + w), min(im.height, y + h)))
+                                        crop.save(crop_path)
+                                samples.append((crop_path, pid, 0, domain_id))
+                                count += 1
+                        except Exception:
+                            continue
+
+                print(f"[✓] CUHK-SYSU automatically cropped: {len(samples)} person crops ready.")
                 return samples
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[!] Warning: Error during automated CUHK-SYSU cropping: {e}")
 
     return samples
 
