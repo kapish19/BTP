@@ -84,13 +84,15 @@ class Trainer:
         self.clip_grad_norm = train_cfg.get("clip_grad_norm", 1.0)
         self.use_amp = train_cfg.get("use_amp", True) and torch.cuda.is_available()
 
+        # start_epoch must be set before _build_optimizer_and_scheduler uses it
+        self.start_epoch = 1
+
         self.scaler = torch.amp.GradScaler('cuda') if self.use_amp else None
         self.optimizer, self.scheduler = self._build_optimizer_and_scheduler()
 
         # Best metrics tracking
         self.best_rank1 = 0.0
         self.best_map = 0.0
-        self.start_epoch = 1
 
         # CSV Logging
         self.csv_path = os.path.join(self.log_dir, "training_metrics.csv")
