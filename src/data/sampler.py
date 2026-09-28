@@ -24,7 +24,7 @@ class MultiDomainPKSampler(Sampler):
         k: int = 4,
         seed: Optional[int] = None
     ):
-        super().__init__(dataset)
+        super().__init__()
         self.dataset = dataset
         self.p = p
         self.k = k
