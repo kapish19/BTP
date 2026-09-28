@@ -3,7 +3,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![CI](https://github.com/kapishverma/dg-reid/actions/workflows/ci.yml/badge.svg)](https://github.com/kapishverma/dg-reid/actions)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/kapish19/BTP/blob/main/DG_ReID_Colab.ipynb)
 
 > **Official Research Codebase for B.Tech Project-I (BTP-I)**  
 > **Authors:** Diya Bangera (2023UCA1917), Kapish Verma (2023UCS1632), Rishit Rana (2023UCA1911)  
