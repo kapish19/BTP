@@ -5,6 +5,7 @@ Visibility-Aware Visual Domain Erasure for Generalizable Person Re-Identificatio
 
 from .dgreid_model import DGReID, build_clip_visual
 from .baseline import BaselineCLIP
+from .sa_clip import SACLIP, build_sa_clip, PatchMixStyle
 from .grl import GradientReversalLayer, grad_reverse, compute_grl_alpha
 from .domain_classifier import DomainClassifier
 from .part_gat import PartVisibilityGAT
