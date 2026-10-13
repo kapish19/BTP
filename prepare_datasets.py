@@ -7,16 +7,26 @@ def setup_data(data_dir="data", drive_dir="/content/drive/MyDrive/datasets"):
     os.makedirs(data_dir, exist_ok=True)
     print("🚀 Preparing datasets for DG-ReID...")
 
-    # 1. Setup Kaggle credentials if present
-    for src in ["/content/kaggle.json", "kaggle.json"]:
-        if os.path.exists(src):
-            kdir = os.path.expanduser("~/.kaggle")
-            os.makedirs(kdir, exist_ok=True)
-            kdest = os.path.join(kdir, "kaggle.json")
-            if not os.path.exists(kdest):
-                shutil.copy(src, kdest)
-                os.chmod(kdest, 0o600)
-                print("  ✅ Kaggle API credentials configured.")
+    # 1. Setup Kaggle credentials from environment variables or files
+    kaggle_user = os.environ.get("KAGGLE_USERNAME")
+    kaggle_key = os.environ.get("KAGGLE_KEY")
+    kdir = os.path.expanduser("~/.kaggle")
+    os.makedirs(kdir, exist_ok=True)
+    kdest = os.path.join(kdir, "kaggle.json")
+
+    if kaggle_user and kaggle_key:
+        import json
+        with open(kdest, "w") as f:
+            json.dump({"username": kaggle_user, "key": kaggle_key}, f)
+        os.chmod(kdest, 0o600)
+        print(f"  ✅ Kaggle API credentials written from environment variables for user: {kaggle_user}")
+    else:
+        for src in ["/content/kaggle.json", "kaggle.json"]:
+            if os.path.exists(src):
+                if not os.path.exists(kdest):
+                    shutil.copy(src, kdest)
+                    os.chmod(kdest, 0o600)
+                    print("  ✅ Kaggle API credentials configured from file.")
 
     use_drive = os.path.exists("/content/drive/MyDrive")
     if use_drive:
@@ -48,6 +58,12 @@ def setup_data(data_dir="data", drive_dir="/content/drive/MyDrive/datasets"):
             "drive_cands": ["cuhk03", "cuhk-03"],
             "kaggle": "priyanagda/cuhk03",
             "unzip_to": "cuhk03",
+        },
+        {
+            "name": "DukeMTMC-reID",
+            "drive_cands": ["DukeMTMC-reID", "dukemtmc-reid", "dukemtmc"],
+            "kaggle": "whurobin/dukemtmcreid",
+            "unzip_to": "DukeMTMC-reID",
         },
     ]
 
